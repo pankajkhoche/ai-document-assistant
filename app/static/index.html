@@ -6,199 +6,509 @@
 <title>AI Document Assistant</title>
 <style>
   :root {
-    --bg: #f5f6f8;
+    --bg-a: #f3f1fb;
+    --bg-b: #eef2fb;
     --surface: #ffffff;
-    --border: #e2e4e9;
-    --text: #1a1d23;
-    --text-muted: #6b7280;
-    --accent: #4f46e5;
-    --accent-hover: #4338ca;
-    --success: #16a34a;
-    --error: #dc2626;
-    --radius: 10px;
+    --surface-alt: #f7f7fc;
+    --border: #e7e5f3;
+    --border-strong: #d8d4ec;
+    --text: #17151f;
+    --text-muted: #67637a;
+    --text-faint: #9793a8;
+    --accent: #6552f5;
+    --accent-strong: #5340e0;
+    --accent-soft: #efecfe;
+    --accent-contrast: #ffffff;
+    --success: #17a673;
+    --success-soft: #e8faf3;
+    --error: #e0455a;
+    --error-soft: #fdecee;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 9px;
+    --shadow-sm: 0 1px 2px rgba(23, 21, 31, 0.04);
+    --shadow-md: 0 6px 20px rgba(31, 26, 64, 0.07), 0 1px 3px rgba(31, 26, 64, 0.05);
+    --shadow-lg: 0 20px 44px rgba(31, 26, 64, 0.14);
+    --ring: 0 0 0 3px rgba(101, 82, 245, 0.22);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #14161a;
-      --surface: #1c1f26;
-      --border: #2c303a;
-      --text: #e8e9ec;
-      --text-muted: #9aa0ab;
-      --accent: #818cf8;
-      --accent-hover: #a5b4fc;
+      --bg-a: #0f0e17;
+      --bg-b: #14121f;
+      --surface: #1a1826;
+      --surface-alt: #201d2f;
+      --border: #2c2941;
+      --border-strong: #3a3654;
+      --text: #f1eff9;
+      --text-muted: #a29dbe;
+      --text-faint: #726d8a;
+      --accent: #8b7bff;
+      --accent-strong: #a496ff;
+      --accent-soft: rgba(139, 123, 255, 0.16);
+      --accent-contrast: #100e1c;
+      --success: #3ddba0;
+      --success-soft: rgba(61, 219, 160, 0.12);
+      --error: #ff6b7f;
+      --error-soft: rgba(255, 107, 127, 0.12);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+      --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.5);
+      --ring: 0 0 0 3px rgba(139, 123, 255, 0.28);
     }
   }
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
     color: var(--text);
     min-height: 100vh;
+    background:
+      radial-gradient(1100px 520px at 12% -10%, var(--accent-soft), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, var(--bg-b), transparent 55%),
+      var(--bg-a);
+    background-attachment: fixed;
   }
   .wrap {
-    max-width: 720px;
+    max-width: 760px;
     margin: 0 auto;
-    padding: 48px 20px 80px;
+    padding: 56px 22px 64px;
   }
-  header { margin-bottom: 32px; }
-  h1 { font-size: 1.5rem; margin: 0 0 4px; letter-spacing: -0.01em; }
-  .subtitle { color: var(--text-muted); font-size: 0.95rem; margin: 0; }
+
+  /* ---------- Header ---------- */
+  header { margin-bottom: 30px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(155deg, var(--accent), var(--accent-strong));
+    box-shadow: 0 6px 16px rgba(101, 82, 245, 0.35);
+  }
+  .brand-mark svg { width: 21px; height: 21px; color: #fff; }
+  h1 {
+    font-size: 1.55rem; margin: 0; letter-spacing: -0.02em; font-weight: 700;
+    line-height: 1.2;
+  }
+  .subtitle { color: var(--text-muted); font-size: 0.97rem; margin: 5px 0 0; }
+
+  .statusbar {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px; margin-top: 20px;
+  }
   .status {
-    display: inline-flex; align-items: center; gap: 6px;
-    margin-top: 14px; font-size: 0.85rem; color: var(--text-muted);
-    padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.82rem; color: var(--text-muted); font-weight: 500;
+    padding: 6px 12px 6px 10px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 999px; box-shadow: var(--shadow-sm);
   }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+  .dot-live { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .dot-live::after {
+    content: ""; position: absolute; inset: -4px; border-radius: 50%;
+    border: 1.5px solid var(--success); opacity: 0.6;
+    animation: pulse 2.2s ease-out infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(0.6); opacity: 0.7; }
+    100% { transform: scale(1.9); opacity: 0; }
+  }
+  .stack {
+    display: flex; gap: 6px;
+  }
+  .pill {
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.01em;
+    color: var(--text-muted); background: var(--surface-alt);
+    border: 1px solid var(--border); padding: 5px 10px; border-radius: 999px;
+  }
+
+  /* ---------- Cards ---------- */
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 20px;
+    border-radius: var(--radius-lg);
+    padding: 26px;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow-md);
   }
-  .card h2 {
-    font-size: 1rem; margin: 0 0 14px; font-weight: 600;
+  .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .step-badge {
+    width: 24px; height: 24px; border-radius: 8px; flex-shrink: 0;
+    background: var(--accent-soft); color: var(--accent-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 700;
   }
-  .row { display: flex; gap: 10px; }
-  input[type="file"] {
-    flex: 1; font-size: 0.9rem; color: var(--text-muted);
+  .card h2 { font-size: 1.02rem; margin: 0; font-weight: 650; letter-spacing: -0.005em; }
+  .card-hint { margin: 0 0 0 auto; font-size: 0.76rem; color: var(--text-faint); }
+
+  /* ---------- Dropzone ---------- */
+  .dropzone {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; text-align: center; padding: 30px 18px;
+    border: 1.5px dashed var(--border-strong); border-radius: var(--radius-md);
+    background: var(--surface-alt); cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
   }
-  input[type="text"] {
-    flex: 1; padding: 10px 12px; border: 1px solid var(--border);
-    border-radius: 8px; font-size: 0.95rem; background: var(--bg); color: var(--text);
+  .dropzone:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .dropzone.drag { border-color: var(--accent); background: var(--accent-soft); transform: scale(1.005); }
+  .dropzone svg { width: 26px; height: 26px; color: var(--text-faint); }
+  .dropzone:hover svg, .dropzone.drag svg { color: var(--accent); }
+  .dropzone .dz-title { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+  .dropzone .dz-sub { font-size: 0.78rem; color: var(--text-faint); }
+  .dropzone input[type="file"] { display: none; }
+
+  .file-chip {
+    display: none; align-items: center; gap: 10px;
+    margin-top: 14px; padding: 10px 12px;
+    background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-sm);
   }
-  input[type="text"]:focus, input[type="file"]:focus { outline: 2px solid var(--accent); }
+  .file-chip.show { display: flex; }
+  .file-chip svg { width: 17px; height: 17px; color: var(--accent); flex-shrink: 0; }
+  .file-chip .fname { flex: 1; font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-chip .fremove {
+    all: unset; cursor: pointer; color: var(--text-faint); display: flex; padding: 3px; border-radius: 6px;
+  }
+  .file-chip .fremove:hover { color: var(--error); background: var(--error-soft); }
+  .file-chip .fremove svg { width: 14px; height: 14px; }
+
+  .action-row { margin-top: 16px; display: flex; justify-content: flex-end; }
+
+  /* ---------- Buttons ---------- */
   button {
-    padding: 10px 18px; border: none; border-radius: 8px;
-    background: var(--accent); color: white; font-size: 0.9rem; font-weight: 600;
-    cursor: pointer; transition: background 0.15s;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border: none; border-radius: var(--radius-sm);
+    background: linear-gradient(155deg, var(--accent), var(--accent-strong));
+    color: var(--accent-contrast); font-size: 0.88rem; font-weight: 650;
+    cursor: pointer; transition: transform 0.08s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    box-shadow: 0 4px 14px rgba(101, 82, 245, 0.28);
   }
-  button:hover:not(:disabled) { background: var(--accent-hover); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  .msg { margin-top: 12px; font-size: 0.88rem; }
-  .msg.ok { color: var(--success); }
-  .msg.err { color: var(--error); }
-  .answer {
-    margin-top: 16px; padding: 16px; background: var(--bg);
-    border-radius: 8px; font-size: 0.95rem; line-height: 1.55; white-space: pre-wrap;
+  button svg { width: 15px; height: 15px; }
+  button:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(101, 82, 245, 0.38); }
+  button:active:not(:disabled) { transform: translateY(1px) scale(0.99); }
+  button:focus-visible, .dropzone:focus-visible, textarea:focus-visible {
+    outline: none; box-shadow: var(--ring);
   }
-  .sources { margin-top: 12px; }
+  button:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+  button.secondary {
+    background: var(--surface-alt); color: var(--text); box-shadow: none;
+    border: 1px solid var(--border);
+  }
+
+  /* ---------- Ask input ---------- */
+  textarea {
+    width: 100%; resize: none; padding: 13px 14px; border: 1px solid var(--border);
+    border-radius: var(--radius-md); font-size: 0.95rem; font-family: inherit;
+    background: var(--surface-alt); color: var(--text); line-height: 1.5;
+    min-height: 52px; max-height: 160px; transition: border-color 0.15s ease;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--text-faint); }
+  .ask-row { display: flex; flex-direction: column; gap: 12px; }
+  .ask-actions { display: flex; align-items: center; justify-content: space-between; }
+  .kbd-hint { font-size: 0.74rem; color: var(--text-faint); }
+  .kbd-hint kbd {
+    font-family: inherit; font-size: 0.72rem; padding: 1px 5px; border-radius: 4px;
+    background: var(--surface-alt); border: 1px solid var(--border); color: var(--text-muted);
+  }
+
+  /* ---------- Messages ---------- */
+  .msg {
+    display: none; align-items: center; gap: 8px;
+    margin-top: 14px; padding: 10px 12px; border-radius: var(--radius-sm);
+    font-size: 0.85rem; font-weight: 500;
+  }
+  .msg.show { display: flex; }
+  .msg svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .msg.ok { color: var(--success); background: var(--success-soft); }
+  .msg.err { color: var(--error); background: var(--error-soft); }
+
+  /* ---------- Answer ---------- */
+  .answer-box {
+    display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);
+    animation: rise 0.35s ease both;
+  }
+  .answer-box.show { display: block; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .answer-label {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 0.74rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--accent-strong); margin-bottom: 10px;
+  }
+  .answer-label svg { width: 13px; height: 13px; }
+  .answer-text {
+    font-size: 0.98rem; line-height: 1.65; white-space: pre-wrap; color: var(--text);
+  }
+  .sources { margin-top: 18px; display: flex; flex-direction: column; gap: 8px; }
+  .sources-label { font-size: 0.76rem; font-weight: 650; color: var(--text-faint); margin-bottom: 2px; }
   .source {
-    font-size: 0.8rem; color: var(--text-muted);
-    padding: 8px 10px; border-left: 2px solid var(--accent);
-    margin-bottom: 6px; background: var(--bg); border-radius: 0 6px 6px 0;
+    display: flex; gap: 10px; padding: 11px 12px;
+    background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;
+    transition: border-color 0.15s ease;
   }
-  .source b { color: var(--text); }
-  footer {
-    margin-top: 32px; font-size: 0.8rem; color: var(--text-muted); text-align: center;
+  .source:hover { border-color: var(--border-strong); }
+  .source .num {
+    flex-shrink: 0; width: 19px; height: 19px; border-radius: 6px;
+    background: var(--accent-soft); color: var(--accent-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700; margin-top: 1px;
   }
-  footer a { color: var(--accent); text-decoration: none; }
+  .source .body b { color: var(--text); font-weight: 650; }
+
+  /* ---------- Empty state ---------- */
+  .empty-hint {
+    display: flex; align-items: flex-start; gap: 10px;
+    margin-top: 4px; padding: 12px 13px; border-radius: var(--radius-sm);
+    background: var(--surface-alt); border: 1px dashed var(--border-strong);
+    font-size: 0.82rem; color: var(--text-faint);
+  }
+  .empty-hint svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px; color: var(--text-faint); }
+
+  /* ---------- Footer ---------- */
+  footer { margin-top: 36px; text-align: center; }
+  footer .links { font-size: 0.82rem; color: var(--text-faint); }
+  footer .links a { color: var(--accent-strong); text-decoration: none; font-weight: 600; }
+  footer .links a:hover { text-decoration: underline; }
+  footer .tech { display: flex; justify-content: center; gap: 7px; margin-top: 14px; flex-wrap: wrap; }
+
   .spinner {
-    display: inline-block; width: 14px; height: 14px;
-    border: 2px solid rgba(255,255,255,0.4); border-top-color: white;
-    border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: -2px;
+    width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.4); border-top-color: currentColor;
+    animation: spin 0.7s linear infinite;
   }
+  button.secondary .spinner { border-color: rgba(101, 82, 245, 0.25); border-top-color: var(--accent); }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 480px) {
+    .wrap { padding: 40px 16px 48px; }
+    .card { padding: 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
 </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>AI Document Assistant</h1>
-      <p class="subtitle">Upload a document, then ask questions grounded in its content.</p>
-      <div class="status"><span class="dot"></span><span id="statusText">checking…</span></div>
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="m9 15 2 2 4-4"/></svg>
+        </div>
+        <div>
+          <h1>AI Document Assistant</h1>
+          <p class="subtitle">Upload a document, then ask questions grounded in its content.</p>
+        </div>
+      </div>
+      <div class="statusbar">
+        <div class="status"><span class="dot-live"></span><span id="statusText">checking…</span></div>
+        <div class="stack">
+          <span class="pill">FastAPI</span>
+          <span class="pill">FAISS</span>
+          <span class="pill">RAG</span>
+        </div>
+      </div>
     </header>
 
-    <div class="card">
-      <h2>1. Upload a document</h2>
-      <div class="row">
-        <input type="file" id="fileInput" accept=".pdf,.docx,.txt">
-        <button id="ingestBtn">Ingest</button>
+    <section class="card">
+      <div class="card-head">
+        <div class="step-badge">1</div>
+        <h2>Upload a document</h2>
+        <span class="card-hint">PDF · DOCX · TXT</span>
       </div>
-      <div id="ingestMsg" class="msg"></div>
-    </div>
 
-    <div class="card">
-      <h2>2. Ask a question</h2>
-      <div class="row">
-        <input type="text" id="questionInput" placeholder="What is the leave policy?">
-        <button id="askBtn">Ask</button>
+      <label class="dropzone" id="dropzone" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.9A5 5 0 0 1 6 5.3a6 6 0 0 1 11.3-1.6A5.5 5.5 0 0 1 19 14"/><path d="M12 12v9"/><path d="m8 16 4-4 4 4"/></svg>
+        <span class="dz-title">Drop a file here, or click to browse</span>
+        <span class="dz-sub">Up to a few MB — text is chunked and embedded locally</span>
+        <input type="file" id="fileInput" accept=".pdf,.docx,.txt">
+      </label>
+
+      <div class="file-chip" id="fileChip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg>
+        <span class="fname" id="fileName"></span>
+        <button type="button" class="fremove" id="fileRemove" aria-label="Remove file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
       </div>
+
+      <div class="action-row">
+        <button id="ingestBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.9A5 5 0 0 1 6 5.3a6 6 0 0 1 11.3-1.6A5.5 5.5 0 0 1 19 14"/><path d="M12 12v9"/><path d="m8 16 4-4 4 4"/></svg>
+          <span>Ingest document</span>
+        </button>
+      </div>
+
+      <div id="ingestMsg" class="msg"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div class="step-badge">2</div>
+        <h2>Ask a question</h2>
+      </div>
+
+      <div class="ask-row">
+        <textarea id="questionInput" rows="2" placeholder="What is the leave policy?"></textarea>
+        <div class="ask-actions">
+          <span class="kbd-hint"><kbd>Enter</kbd> to ask · <kbd>Shift+Enter</kbd> for a new line</span>
+          <button id="askBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 18 9-18 9 4-9Z"/></svg>
+            <span>Ask</span>
+          </button>
+        </div>
+      </div>
+
       <div id="askMsg" class="msg"></div>
-      <div id="answerBox" style="display:none">
-        <div class="answer" id="answerText"></div>
-        <div class="sources" id="sourcesList"></div>
+
+      <div id="emptyHint" class="empty-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        <span>Upload at least one document above before asking — answers are grounded only in what you've ingested.</span>
       </div>
-    </div>
+
+      <div id="answerBox" class="answer-box">
+        <div class="answer-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 4.9L5 9.8l4.9 1.9L12 16.5l1.9-4.8 4.9-1.9-4.9-1.9L12 3Z"/></svg>
+          Answer
+        </div>
+        <div class="answer-text" id="answerText"></div>
+        <div class="sources" id="sourcesWrap" style="display:none">
+          <div class="sources-label">Sources</div>
+          <div id="sourcesList"></div>
+        </div>
+      </div>
+    </section>
 
     <footer>
-      Full API reference at <a href="/docs">/docs</a>
+      <div class="links">Full API reference at <a href="/docs">/docs</a></div>
+      <div class="tech">
+        <span class="pill">LangChain</span>
+        <span class="pill">Sentence-Transformers</span>
+        <span class="pill">Pydantic v2</span>
+        <span class="pill">Docker</span>
+      </div>
     </footer>
   </div>
 
 <script>
-  const statusText = document.getElementById('statusText');
-  const fileInput = document.getElementById('fileInput');
-  const ingestBtn = document.getElementById('ingestBtn');
-  const ingestMsg = document.getElementById('ingestMsg');
+  const statusText   = document.getElementById('statusText');
+  const dropzone      = document.getElementById('dropzone');
+  const fileInput     = document.getElementById('fileInput');
+  const fileChip       = document.getElementById('fileChip');
+  const fileName       = document.getElementById('fileName');
+  const fileRemove    = document.getElementById('fileRemove');
+  const ingestBtn      = document.getElementById('ingestBtn');
+  const ingestMsg      = document.getElementById('ingestMsg');
   const questionInput = document.getElementById('questionInput');
-  const askBtn = document.getElementById('askBtn');
-  const askMsg = document.getElementById('askMsg');
-  const answerBox = document.getElementById('answerBox');
-  const answerText = document.getElementById('answerText');
-  const sourcesList = document.getElementById('sourcesList');
+  const askBtn          = document.getElementById('askBtn');
+  const askMsg          = document.getElementById('askMsg');
+  const emptyHint      = document.getElementById('emptyHint');
+  const answerBox      = document.getElementById('answerBox');
+  const answerText     = document.getElementById('answerText');
+  const sourcesWrap    = document.getElementById('sourcesWrap');
+  const sourcesList    = document.getElementById('sourcesList');
+
+  const ICON_OK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>';
+  const ICON_ERR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>';
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+
+  function showMsg(el, text, ok) {
+    el.innerHTML = `${ok ? ICON_OK : ICON_ERR}<span>${escapeHtml(text)}</span>`;
+    el.className = `msg show ${ok ? 'ok' : 'err'}`;
+  }
+  function hideMsg(el) { el.className = 'msg'; el.innerHTML = ''; }
+
+  let documentsIndexed = 0;
 
   async function refreshStatus() {
     try {
       const res = await fetch('/health');
       const data = await res.json();
-      statusText.textContent = `${data.documents_indexed} document(s) indexed`;
+      documentsIndexed = data.documents_indexed || 0;
+      statusText.textContent = `${documentsIndexed} document${documentsIndexed === 1 ? '' : 's'} indexed`;
+      emptyHint.style.display = documentsIndexed > 0 ? 'none' : 'flex';
     } catch {
       statusText.textContent = 'unable to reach API';
     }
   }
 
+  function setFile(file) {
+    if (!file) {
+      fileChip.classList.remove('show');
+      fileInput.value = '';
+      return;
+    }
+    fileName.textContent = file.name;
+    fileChip.classList.add('show');
+  }
+
+  dropzone.addEventListener('click', (e) => { if (e.target.closest('input')) return; });
+  fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
+  fileRemove.addEventListener('click', () => setFile(null));
+
+  ['dragenter', 'dragover'].forEach((evt) =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('drag'); })
+  );
+  ['dragleave', 'drop'].forEach((evt) =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('drag'); })
+  );
+  dropzone.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files[0];
+    if (file) { fileInput.files = e.dataTransfer.files; setFile(file); }
+  });
+  dropzone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+  });
+
   ingestBtn.addEventListener('click', async () => {
     const file = fileInput.files[0];
+    hideMsg(ingestMsg);
     if (!file) {
-      ingestMsg.textContent = 'Choose a file first.';
-      ingestMsg.className = 'msg err';
+      showMsg(ingestMsg, 'Choose a file first.', false);
       return;
     }
     ingestBtn.disabled = true;
-    ingestBtn.innerHTML = '<span class="spinner"></span> Ingesting…';
-    ingestMsg.textContent = '';
+    const original = ingestBtn.innerHTML;
+    ingestBtn.innerHTML = '<span class="spinner"></span><span>Ingesting…</span>';
     try {
       const form = new FormData();
       form.append('file', file);
       const res = await fetch('/ingest', { method: 'POST', body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Ingestion failed');
-      ingestMsg.textContent = `Indexed "${data.filename}" — ${data.chunks_indexed} chunk(s).`;
-      ingestMsg.className = 'msg ok';
-      fileInput.value = '';
+      showMsg(ingestMsg, `Indexed "${data.filename}" — ${data.chunks_indexed} chunk(s).`, true);
+      setFile(null);
       refreshStatus();
     } catch (err) {
-      ingestMsg.textContent = err.message;
-      ingestMsg.className = 'msg err';
+      showMsg(ingestMsg, err.message, false);
     } finally {
       ingestBtn.disabled = false;
-      ingestBtn.textContent = 'Ingest';
+      ingestBtn.innerHTML = original;
     }
+  });
+
+  questionInput.addEventListener('input', () => {
+    questionInput.style.height = 'auto';
+    questionInput.style.height = Math.min(questionInput.scrollHeight, 160) + 'px';
+  });
+  questionInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askBtn.click(); }
   });
 
   askBtn.addEventListener('click', async () => {
     const question = questionInput.value.trim();
+    hideMsg(askMsg);
     if (question.length < 3) {
-      askMsg.textContent = 'Ask a slightly longer question.';
-      askMsg.className = 'msg err';
+      showMsg(askMsg, 'Ask a slightly longer question.', false);
       return;
     }
     askBtn.disabled = true;
-    askBtn.innerHTML = '<span class="spinner"></span> Thinking…';
-    askMsg.textContent = '';
-    answerBox.style.display = 'none';
+    const original = askBtn.innerHTML;
+    askBtn.innerHTML = '<span class="spinner"></span><span>Thinking…</span>';
+    answerBox.classList.remove('show');
     try {
       const res = await fetch('/ask', {
         method: 'POST',
@@ -208,21 +518,21 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Failed to answer question.');
       answerText.textContent = data.answer;
-      sourcesList.innerHTML = data.sources.map(s =>
-        `<div class="source"><b>${s.source}</b> — ${s.content}</div>`
-      ).join('');
-      answerBox.style.display = 'block';
+      if (data.sources && data.sources.length) {
+        sourcesList.innerHTML = data.sources.map((s, i) =>
+          `<div class="source"><span class="num">${i + 1}</span><span class="body"><b>${escapeHtml(s.source)}</b> — ${escapeHtml(s.content)}</span></div>`
+        ).join('');
+        sourcesWrap.style.display = 'block';
+      } else {
+        sourcesWrap.style.display = 'none';
+      }
+      answerBox.classList.add('show');
     } catch (err) {
-      askMsg.textContent = err.message;
-      askMsg.className = 'msg err';
+      showMsg(askMsg, err.message, false);
     } finally {
       askBtn.disabled = false;
-      askBtn.textContent = 'Ask';
+      askBtn.innerHTML = original;
     }
-  });
-
-  questionInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') askBtn.click();
   });
 
   refreshStatus();

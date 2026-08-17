@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Document Assistant</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --border: #e2e4e9;
+    --text: #1a1d23;
+    --text-muted: #6b7280;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --success: #16a34a;
+    --error: #dc2626;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a;
+      --surface: #1c1f26;
+      --border: #2c303a;
+      --text: #e8e9ec;
+      --text-muted: #9aa0ab;
+      --accent: #818cf8;
+      --accent-hover: #a5b4fc;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+  header { margin-bottom: 32px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--text-muted); font-size: 0.95rem; margin: 0; }
+  .status {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 14px; font-size: 0.85rem; color: var(--text-muted);
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-size: 1rem; margin: 0 0 14px; font-weight: 600;
+  }
+  .row { display: flex; gap: 10px; }
+  input[type="file"] {
+    flex: 1; font-size: 0.9rem; color: var(--text-muted);
+  }
+  input[type="text"] {
+    flex: 1; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 0.95rem; background: var(--bg); color: var(--text);
+  }
+  input[type="text"]:focus, input[type="file"]:focus { outline: 2px solid var(--accent); }
+  button {
+    padding: 10px 18px; border: none; border-radius: 8px;
+    background: var(--accent); color: white; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+  }
+  button:hover:not(:disabled) { background: var(--accent-hover); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .msg { margin-top: 12px; font-size: 0.88rem; }
+  .msg.ok { color: var(--success); }
+  .msg.err { color: var(--error); }
+  .answer {
+    margin-top: 16px; padding: 16px; background: var(--bg);
+    border-radius: 8px; font-size: 0.95rem; line-height: 1.55; white-space: pre-wrap;
+  }
+  .sources { margin-top: 12px; }
+  .source {
+    font-size: 0.8rem; color: var(--text-muted);
+    padding: 8px 10px; border-left: 2px solid var(--accent);
+    margin-bottom: 6px; background: var(--bg); border-radius: 0 6px 6px 0;
+  }
+  .source b { color: var(--text); }
+  footer {
+    margin-top: 32px; font-size: 0.8rem; color: var(--text-muted); text-align: center;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.4); border-top-color: white;
+    border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: -2px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>AI Document Assistant</h1>
+      <p class="subtitle">Upload a document, then ask questions grounded in its content.</p>
+      <div class="status"><span class="dot"></span><span id="statusText">checking…</span></div>
+    </header>
+
+    <div class="card">
+      <h2>1. Upload a document</h2>
+      <div class="row">
+        <input type="file" id="fileInput" accept=".pdf,.docx,.txt">
+        <button id="ingestBtn">Ingest</button>
+      </div>
+      <div id="ingestMsg" class="msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>2. Ask a question</h2>
+      <div class="row">
+        <input type="text" id="questionInput" placeholder="What is the leave policy?">
+        <button id="askBtn">Ask</button>
+      </div>
+      <div id="askMsg" class="msg"></div>
+      <div id="answerBox" style="display:none">
+        <div class="answer" id="answerText"></div>
+        <div class="sources" id="sourcesList"></div>
+      </div>
+    </div>
+
+    <footer>
+      Full API reference at <a href="/docs">/docs</a>
+    </footer>
+  </div>
+
+<script>
+  const statusText = document.getElementById('statusText');
+  const fileInput = document.getElementById('fileInput');
+  const ingestBtn = document.getElementById('ingestBtn');
+  const ingestMsg = document.getElementById('ingestMsg');
+  const questionInput = document.getElementById('questionInput');
+  const askBtn = document.getElementById('askBtn');
+  const askMsg = document.getElementById('askMsg');
+  const answerBox = document.getElementById('answerBox');
+  const answerText = document.getElementById('answerText');
+  const sourcesList = document.getElementById('sourcesList');
+
+  async function refreshStatus() {
+    try {
+      const res = await fetch('/health');
+      const data = await res.json();
+      statusText.textContent = `${data.documents_indexed} document(s) indexed`;
+    } catch {
+      statusText.textContent = 'unable to reach API';
+    }
+  }
+
+  ingestBtn.addEventListener('click', async () => {
+    const file = fileInput.files[0];
+    if (!file) {
+      ingestMsg.textContent = 'Choose a file first.';
+      ingestMsg.className = 'msg err';
+      return;
+    }
+    ingestBtn.disabled = true;
+    ingestBtn.innerHTML = '<span class="spinner"></span> Ingesting…';
+    ingestMsg.textContent = '';
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/ingest', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Ingestion failed');
+      ingestMsg.textContent = `Indexed "${data.filename}" — ${data.chunks_indexed} chunk(s).`;
+      ingestMsg.className = 'msg ok';
+      fileInput.value = '';
+      refreshStatus();
+    } catch (err) {
+      ingestMsg.textContent = err.message;
+      ingestMsg.className = 'msg err';
+    } finally {
+      ingestBtn.disabled = false;
+      ingestBtn.textContent = 'Ingest';
+    }
+  });
+
+  askBtn.addEventListener('click', async () => {
+    const question = questionInput.value.trim();
+    if (question.length < 3) {
+      askMsg.textContent = 'Ask a slightly longer question.';
+      askMsg.className = 'msg err';
+      return;
+    }
+    askBtn.disabled = true;
+    askBtn.innerHTML = '<span class="spinner"></span> Thinking…';
+    askMsg.textContent = '';
+    answerBox.style.display = 'none';
+    try {
+      const res = await fetch('/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to answer question.');
+      answerText.textContent = data.answer;
+      sourcesList.innerHTML = data.sources.map(s =>
+        `<div class="source"><b>${s.source}</b> — ${s.content}</div>`
+      ).join('');
+      answerBox.style.display = 'block';
+    } catch (err) {
+      askMsg.textContent = err.message;
+      askMsg.className = 'msg err';
+    } finally {
+      askBtn.disabled = false;
+      askBtn.textContent = 'Ask';
+    }
+  });
+
+  questionInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') askBtn.click();
+  });
+
+  refreshStatus();
+</script>
+</body>
+</html>

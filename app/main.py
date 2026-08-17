@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 
 from app.core.config import settings
 from app.api.routes import router
@@ -18,4 +19,4 @@ app.include_router(router)
 
 @app.get("/")
 def root():
-    return {"message": f"{settings.app_name} is running. Visit /docs for API documentation."}
+    return FileResponse("app/static/index.html")

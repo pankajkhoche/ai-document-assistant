@@ -7,6 +7,7 @@ Documents are ingested, chunked, embedded, and indexed in a vector store; questi
 ## Features
 
 - **RAG pipeline** end-to-end — ingestion, chunking, embeddings, vector search, grounded answers
+- **Minimal web UI** for uploading documents and asking questions (served at `/`)
 - **FastAPI** service with clean separation of concerns (API / services / core / models)
 - **Vector search** (FAISS) with swappable embedding backends
 - **Dockerized**, config-driven, environment-based deployment
@@ -52,6 +53,8 @@ Documents are ingested, chunked, embedded, and indexed in a vector store; questi
 ai-document-assistant/
 ├── app/
 │   ├── main.py                 # FastAPI app entrypoint
+│   ├── static/
+│   │   └── index.html          # minimal web UI (upload + ask)
 │   ├── api/
 │   │   └── routes.py           # /ingest, /ask, /health endpoints
 │   ├── core/
@@ -85,7 +88,7 @@ cp .env.example .env            # add your LLM_API_KEY and LLM_MODEL
 uvicorn app.main:app --reload
 ```
 
-API docs available at: `http://localhost:8000/docs`
+Open `http://localhost:8000` for the web UI, or `http://localhost:8000/docs` for the API reference.
 
 ## Setup (Docker)
 

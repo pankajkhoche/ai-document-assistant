@@ -76,7 +76,7 @@ ai-document-assistant/
 ## Setup (Local)
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/pankajkhoche/ai-document-assistant.git
 cd ai-document-assistant
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
